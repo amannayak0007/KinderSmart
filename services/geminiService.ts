@@ -1,79 +1,74 @@
-import { GoogleGenAI, Type } from "@google/genai";
+const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-// Initialize the client
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-const modelId = "gemini-2.5-flash";
+const scienceFacts = [
+  {
+    topic: 'Space',
+    fact: 'The Sun is a giant star that keeps us warm and bright every day.',
+    question: 'What keeps our planet warm?',
+    options: ['The Sun', 'The Moon', 'The Clouds'],
+    answer: 'The Sun',
+  },
+  {
+    topic: 'Plants',
+    fact: 'Plants drink sunlight and water to make their own food.',
+    question: 'What do plants use to make food?',
+    options: ['Sunlight', 'Cats', 'Coins'],
+    answer: 'Sunlight',
+  },
+  {
+    topic: 'Water',
+    fact: 'Water can turn into ice when it gets very cold.',
+    question: 'What happens to water when it freezes?',
+    options: ['It turns to ice', 'It turns to candy', 'It disappears'],
+    answer: 'It turns to ice',
+  },
+];
 
-export const generateMathQuestion = async (difficulty: string): Promise<{ question: string; options: string[]; answer: string } | null> => {
-  try {
-    const prompt = `Generate a single kindergarten math question (simple addition or subtraction) for difficulty ${difficulty}. 
-    Return JSON with format: { "question": "2 + 2 = ?", "options": ["3", "4", "5", "1"], "answer": "4" }`;
-
-    const response = await ai.models.generateContent({
-      model: modelId,
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            question: { type: Type.STRING },
-            options: { type: Type.ARRAY, items: { type: Type.STRING } },
-            answer: { type: Type.STRING }
-          }
-        }
-      }
-    });
-
-    const text = response.text;
-    if (!text) return null;
-    return JSON.parse(text);
-  } catch (error) {
-    console.error("Gemini Math Error", error);
-    return null;
-  }
+const mathQuestions: Record<string, { question: string; options: string[]; answer: string }> = {
+  easy: {
+    question: '2 + 3 = ?',
+    options: ['4', '5', '6'],
+    answer: '5',
+  },
+  medium: {
+    question: '7 - 2 = ?',
+    options: ['4', '5', '6'],
+    answer: '5',
+  },
+  hard: {
+    question: '4 + 5 - 3 = ?',
+    options: ['5', '6', '7'],
+    answer: '6',
+  },
+  default: {
+    question: '1 + 1 = ?',
+    options: ['1', '2', '3'],
+    answer: '2',
+  },
 };
 
-export const generateScienceFact = async (): Promise<{ topic: string, fact: string, question: string, options: string[], answer: string } | null> => {
-  try {
-    const prompt = `Tell a fun, very short science fact for a 5-year-old, then ask a simple question about it.
-    JSON Format: { "topic": "Space", "fact": "The sun is a giant star that keeps us warm.", "question": "What keeps us warm?", "options": ["The Sun", "The Moon", "Ice"], "answer": "The Sun" }`;
+const storyTemplates = [
+  (topic: string) => `Once upon a time there was a tiny ${topic.toLowerCase()} who wished to make their friends smile.`,
+  (topic: string) => `A playful ${topic.toLowerCase()} found a magic feather and flew to the rainbow castle.`,
+  (topic: string) => `Every morning the ${topic.toLowerCase()} bounced out of bed ready for a big hug and a new adventure.`,
+];
 
-    const response = await ai.models.generateContent({
-        model: modelId,
-        contents: prompt,
-        config: {
-            responseMimeType: "application/json",
-            responseSchema: {
-                type: Type.OBJECT,
-                properties: {
-                    topic: { type: Type.STRING },
-                    fact: { type: Type.STRING },
-                    question: { type: Type.STRING },
-                    options: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    answer: { type: Type.STRING }
-                }
-            }
-        }
-    });
-    
-    const text = response.text;
-    if (!text) return null;
-    return JSON.parse(text);
-  } catch (e) {
-    console.error(e);
-    return null;
-  }
-}
+const pickRandom = <T,>(items: T[]): T => items[Math.floor(Math.random() * items.length)];
+
+export const generateMathQuestion = async (difficulty: string): Promise<{ question: string; options: string[]; answer: string } | null> => {
+  await delay(300);
+  const key = difficulty?.toLowerCase() || 'default';
+  return mathQuestions[key] ?? mathQuestions.default;
+};
+
+export const generateScienceFact = async (): Promise<{ topic: string; fact: string; question: string; options: string[]; answer: string } | null> => {
+  await delay(400);
+  return pickRandom(scienceFacts);
+};
 
 export const generateStory = async (topic: string): Promise<string> => {
-  try {
-    const response = await ai.models.generateContent({
-      model: modelId,
-      contents: `Write a very short, cute 3-sentence story for a kindergartener about: ${topic}. Use simple words.`,
-    });
-    return response.text || "Once upon a time...";
-  } catch (error) {
-    return "Sorry, I couldn't think of a story right now. Try again!";
-  }
+  await delay(300);
+  const trimmed = (topic || 'Playtime').trim();
+  const template = pickRandom(storyTemplates);
+  return template(trimmed);
 };
