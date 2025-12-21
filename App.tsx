@@ -214,7 +214,7 @@ const App: React.FC = () => {
       <header className="w-full mb-8 flex items-center justify-start text-left">
         <div>
             <h1 className="text-4xl md:text-5xl font-extrabold text-gray-800 tracking-tight">Kinder<span className="text-blue-500">Smart</span></h1>
-            <p className="text-gray-500 mt-2 text-xl">What do you want to learn today?</p>
+            <p className="text-gray-500 mt-2 text-xl">Learn Something New</p>
         </div>
       </header>
 
